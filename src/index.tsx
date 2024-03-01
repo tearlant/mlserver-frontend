@@ -1,15 +1,31 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+
+import "bootstrap/dist/css/bootstrap.min.css";
+import "./assets/css/animate.min.css";
+import "./assets/scss/light-bootstrap-dashboard-react.scss?v=2.0.0";
+import "./assets/css/demo.css";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+
+import AdminLayout from './layouts/Admin';
+import { makeServer } from 'mocks/mirageServer';
+
+//if (process.env.NODE_ENV === 'development') makeServer();
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
   <React.StrictMode>
-    <App />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/admin/*" element={<AdminLayout />} />
+          <Route path="/" element={<Navigate to="/admin/diamonds" />} />
+        </Routes>
+      </BrowserRouter>
   </React.StrictMode>
 );
 
