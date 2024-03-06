@@ -245,7 +245,7 @@ function Dashboard({ modelToLoad }: Props) {
   return (
     <DashboardContext.Provider value={{updateImage}}>
         <div>
-          {loadedModel === ModelSelection.None ? (
+          {loadedModel !== modelToLoad ? (
             <div style={curtainStyle}>
               <p>Loading...</p>
             </div>
@@ -253,16 +253,16 @@ function Dashboard({ modelToLoad }: Props) {
             <Container fluid>
               <Row style={{marginTop: '0.25rem', marginBottom: '0.25rem'}}>
                 <Col lg="3" sm="6">
-                  <ImageCard imgSrc={imageUrls.img1url} id={1} predictedLabel={modelOutputs.image1.predictedLabel} />
+                  <ImageCard imgSrc={imageUrls.img1url} id={1} predictedLabel={modelOutputs.image1.predictedLabel} primaryColor={colors[0]} secondaryColor={colors[0]} />
                 </Col>
                 <Col lg="3" sm="6">
-                  <ImageCard imgSrc={imageUrls.img2url} id={2} predictedLabel={modelOutputs.image2.predictedLabel} />
+                  <ImageCard imgSrc={imageUrls.img2url} id={2} predictedLabel={modelOutputs.image2.predictedLabel} primaryColor={colors[0]} secondaryColor={colors[0]} />
                 </Col>
                 <Col lg="3" sm="6">
-                  <ImageCard imgSrc={imageUrls.img3url} id={3} predictedLabel={modelOutputs.image3.predictedLabel} />
+                  <ImageCard imgSrc={imageUrls.img3url} id={3} predictedLabel={modelOutputs.image3.predictedLabel} primaryColor={colors[0]} secondaryColor={colors[0]} />
                 </Col>
                 <Col lg="3" sm="6">
-                  <ImageCard imgSrc={imageUrls.img4url} id={4} predictedLabel={modelOutputs.image4.predictedLabel}/>
+                  <ImageCard imgSrc={imageUrls.img4url} id={4} predictedLabel={modelOutputs.image4.predictedLabel} primaryColor={colors[0]} secondaryColor={colors[0]} />
                 </Col>
               </Row>
               <Row>

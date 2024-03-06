@@ -7,11 +7,13 @@ interface Props {
   imgSrc: string;
   id: number;
   predictedLabel: string;
+  primaryColor: string;
+  secondaryColor: string;
 }
 
 const placeholderUrl = process.env.PUBLIC_URL + "/img/placeholder.png";
 
-function ImageCard({imgSrc, id, predictedLabel}: Props) {
+function ImageCard({imgSrc, id, predictedLabel, primaryColor, secondaryColor}: Props) {
 
   const { updateImage } = useContext(DashboardContext);
 
@@ -42,21 +44,69 @@ function ImageCard({imgSrc, id, predictedLabel}: Props) {
   };
 
   // Making sure that images are centered and scaled properly
+  // const styles = {
+  //   container: {
+  //     display: 'flex',
+  //     justifyContent: 'center', // Center horizontally
+  //     alignItems: 'center', // Center vertically
+  //     height: '100%', // Adjust this according to your layout
+  //   },
+  //   imageContainer: {
+  //     textAlign: 'center' as 'center',
+  //     height: '256px',
+  //     minWidth: '256px',
+  //     //maxHeight: '100%'
+  //   },
+  //   imageStyle: {
+  //     maxWidth: '100%', // Ensures the image doesn't exceed its container
+  //     maxHeight: '100%', // Ensures the image doesn't exceed its container
+  //     cursor: 'pointer',
+  //   }
+  // }
+
+  // const styles = {
+  //   container: {
+  //     display: 'flex',
+  //     justifyContent: 'center', // Center horizontally
+  //     alignItems: 'center', // Center vertically
+  //     height: '100%', // Adjust this according to your layout
+  //   },
+  //   imageContainer: {
+  //     textAlign: 'center' as 'center',
+  //     height: '256px',
+  //     width: '256px', // Set width instead of minWidth
+  //     maxWidth: '100%', // Ensure the container doesn't exceed its parent
+  //     overflow: 'hidden', // Hide overflow if image exceeds container size
+  //   },
+  //   imageStyle: {
+  //     width: '100%', // Ensure the image fills the container width
+  //     height: 'auto', // Let the browser calculate the height to maintain aspect ratio
+  //     cursor: 'pointer',
+  //   }
+  // }
+
   const styles = {
     container: {
       display: 'flex',
       justifyContent: 'center', // Center horizontally
       alignItems: 'center', // Center vertically
       height: '100%', // Adjust this according to your layout
+      backgroundColor: primaryColor,
     },
     imageContainer: {
       textAlign: 'center' as 'center',
-      minHeight: '256px',
-      minWidth: '256px',
+      height: '256px',
+      width: '256px', // Set width instead of minWidth
+      maxWidth: '100%', // Ensure the container doesn't exceed its parent
+      overflow: 'hidden', // Hide overflow if image exceeds container size
+      display: 'flex', // Use flexbox to center content
+      justifyContent: 'center', // Center horizontally
+      alignItems: 'center', // Center vertically
+      backgroundColor: secondaryColor,
     },
     imageStyle: {
-      maxWidth: '100%', // Ensures the image doesn't exceed its container
-      maxHeight: '100%', // Ensures the image doesn't exceed its container
+      width: '95%', // Ensure the image fills the container width
+      height: 'auto', // Let the browser calculate the height to maintain aspect ratio
       cursor: 'pointer',
     }
   }
