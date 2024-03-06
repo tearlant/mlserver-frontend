@@ -19,6 +19,7 @@ import ImageCard from "./widgets/ImageCard"
 import BarChartCard from "./widgets/BarChartCard";
 import ClassListCard from "./widgets/ClassListCard";
 import { ModelSelection } from "routes";
+import axios from "axios";
 
 interface Props {
   modelToLoad: ModelSelection;
@@ -156,6 +157,8 @@ function Dashboard({ modelToLoad }: Props) {
 
   useEffect(() => {
 
+    console.log(`PUBLIC_URL is ${process.env.PUBLIC_URL}`)
+
     let modelGuid = '';
 
     switch (modelToLoad) {
@@ -171,27 +174,14 @@ function Dashboard({ modelToLoad }: Props) {
     }
 
     if (modelGuid !== '') {
-      fetch(`https://localhost:44346/api/Prediction/extractandsave/${modelGuid}`, {
-        method: 'GET',
-        credentials: 'include', // Include cookies with the request
+      axios.get(`https://localhost:44346/api/Prediction/extractandsave/${modelGuid}`)
+      .then(response1 => {
+          console.log('First Response from API:', response1.data); // Debugging statement
+          return axios.get('https://localhost:44346/api/Prediction/labels');
       })
-      .then(response => {
-          if (!response.ok) {
-              throw new Error('Network response was not ok');
-          }
-          //console.log(response);
-          return response;
-      })
-      .then(async data => {
-          console.log('First Response from API:', data); // Debugging statement
-          return fetch('https://localhost:44346/api/Prediction/labels', {
-            method: 'GET',
-            credentials: 'include', // Include cookies with the request
-          });
-      })
-      .then(async data => {
-        const newLabels: string[] = await data.json();
-        console.log('Second Response from API:', newLabels); // Debugging statement
+      .then(response2 => {
+        const newLabels: string[] = response2.data;
+        console.log('Second Response from API:', response2.data); // Debugging statement
         console.log(`Setting model to ${modelToLoad}`)
         setLoadedModel(modelToLoad);
         console.log('Setting labels by way of Server')

@@ -25,6 +25,7 @@ import Sidebar from "../components/Sidebar/Sidebar";
 import routes, { LocalRoute } from "../routes";
 
 import sidebarImage from "assets/img/sidebar-3.jpg";
+import axios from "axios";
 
 function Admin() {
   const [image, setImage] = useState(sidebarImage);
@@ -35,6 +36,8 @@ function Admin() {
   const mainPanel = useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
+    axios.defaults.withCredentials = true;
+
     document.documentElement.scrollTop = 0;
     if (document.scrollingElement !== null) document.scrollingElement.scrollTop = 0;
     if (mainPanel.current !== null) mainPanel.current.scrollTop = 0;
