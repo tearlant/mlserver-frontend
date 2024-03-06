@@ -18,7 +18,8 @@
 import { ComponentType, ReactElement } from "react";
 import Dashboard from "./views/Dashboard";
 
-export enum LoadedModel {
+export enum ModelSelection {
+  None,
   Diamonds,
   Flowers,
   Custom
@@ -30,7 +31,7 @@ export interface LocalRoute {
   icon: string;
   component: typeof Dashboard;
   layout: string;
-  loadedModel: LoadedModel;
+  loadedModel: ModelSelection;
   redirect?: boolean;
 }
 
@@ -41,7 +42,7 @@ const dashboardRoutes: LocalRoute[] = [
     icon: "nc-icon nc-chart-pie-35",
     component: Dashboard,
     layout: "/admin",
-    loadedModel: LoadedModel.Diamonds
+    loadedModel: ModelSelection.Diamonds
   },
   {
     path: "/flowers",
@@ -49,7 +50,7 @@ const dashboardRoutes: LocalRoute[] = [
     icon: "nc-icon nc-circle-09",
     component: Dashboard,
     layout: "/admin",
-    loadedModel: LoadedModel.Flowers
+    loadedModel: ModelSelection.Flowers
   },
   {
     path: "/custom",
@@ -57,7 +58,7 @@ const dashboardRoutes: LocalRoute[] = [
     icon: "nc-icon nc-paper-2",
     component: Dashboard,
     layout: "/admin",
-    loadedModel: LoadedModel.Custom
+    loadedModel: ModelSelection.Custom
   }
 ];
 

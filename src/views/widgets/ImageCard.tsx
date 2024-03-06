@@ -25,13 +25,18 @@ function ImageCard({imgSrc, id, predictedLabel}: Props) {
       reader.readAsDataURL(file);
       reader.onloadend = () => {
         //fetch('/api/predict')
-        fetch('https://localhost:44346/api/Prediction/predict', { method: 'POST', body: formData })
-          .then(response => response.json())
-          .then((data) => {
-            updateImage((typeof reader.result === 'string') ? reader.result as string : placeholderUrl, data, id);
-            // If there needs to be an onUpload callback to pass as a prop, call here.
-            console.log('Uploaded file:', file);
-          });
+        fetch('https://localhost:44346/api/Prediction/predict', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include', // Include cookies with the request
+        })
+        .then(response => response.json())
+        .then((data) => {
+          console.log('Response from server: ', data);
+          updateImage((typeof reader.result === 'string') ? reader.result as string : placeholderUrl, data, id);
+          // If there needs to be an onUpload callback to pass as a prop, call here.
+          console.log('Uploaded file:', file);
+        });
       }
     }
   };

@@ -56,7 +56,7 @@ function Admin() {
           <AdminNavbar />
           <div className="content">
             <Routes>
-              {routes.map((route, index) => <Route key={route.path} path={route.path} element={<route.component loadedModel={route.loadedModel}/>}></Route>)}
+              {routes.map((route, index) => <Route key={route.path} path={route.path} element={<route.component modelToLoad={route.loadedModel}/>}></Route>)}
             </Routes>
           </div>
           <Footer />
