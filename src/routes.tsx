@@ -19,10 +19,10 @@ import { ComponentType, ReactElement } from "react";
 import Dashboard from "./views/Dashboard";
 
 export enum ModelSelection {
-  None,
-  Diamonds,
-  Flowers,
-  Custom
+  None = '',
+  Diamonds = 'diamonds',
+  Flowers = 'flowers',
+  Custom = 'custom'
 }
 
 export interface LocalRoute {

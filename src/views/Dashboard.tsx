@@ -1,25 +1,13 @@
 import React, { createContext, useEffect, useState } from "react";
 // react-bootstrap components
-import {
-  Badge,
-  Button,
-  Card,
-  Navbar,
-  Nav,
-  Table,
-  Container,
-  Row,
-  Col,
-  Form,
-  OverlayTrigger,
-  Tooltip,
-} from "react-bootstrap";
+import { Container, Row, Col } from "react-bootstrap";
 
 import ImageCard from "./widgets/ImageCard"
 import BarChartCard from "./widgets/BarChartCard";
 import ClassListCard from "./widgets/ClassListCard";
 import { ModelSelection } from "routes";
 import axios from "axios";
+import ModelLoadComponent from "./ModelLoadComponent";
 
 interface Props {
   modelToLoad: ModelSelection;
@@ -124,15 +112,12 @@ const colorPalette = [ "#030637", "#3C0753", "#720455", "#910A67" ];
 
 // TODO: Move this to a CSS file
 const curtainStyle: React.CSSProperties = {
-  position: 'fixed',
+  position: "absolute",
   top: 0,
   left: 0,
-  width: '100%',
-  height: '100%',
-  backgroundColor: 'rgba(255, 255, 255, 0.7)', // Semi-transparent white overlay
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
+  width: "100%",
+  height: "100%",
+  backgroundColor: "rgba(0, 0, 0, 0.5)",
 };
 
 export const DashboardContext = createContext({
@@ -157,24 +142,10 @@ function Dashboard({ modelToLoad }: Props) {
 
   useEffect(() => {
 
-    console.log(`PUBLIC_URL is ${process.env.PUBLIC_URL}`)
+    const fixedModels: Set<ModelSelection> = new Set([ModelSelection.Diamonds, ModelSelection.Flowers])
 
-    let modelGuid = '';
-
-    switch (modelToLoad) {
-      case ModelSelection.Diamonds:
-        modelGuid = 'e9a0c9da-5aa7-4fd4-90c3-bf88b1c6ddeb';
-        break;
-      case ModelSelection.Flowers:
-        modelGuid = '51848328-657f-48ad-ab9b-b278761eed6e';
-        break;
-      default:
-        setLoadedModel(modelToLoad);
-        break;
-    }
-
-    if (modelGuid !== '') {
-      axios.get(`https://localhost:44346/api/Prediction/extractandsave/${modelGuid}`)
+    if (fixedModels.has(modelToLoad)) {
+      axios.get(`https://localhost:44346/api/FixedModels/${modelToLoad}`)
       .then(response1 => {
           console.log('First Response from API:', response1.data); // Debugging statement
           return axios.get('https://localhost:44346/api/Prediction/labels');
@@ -195,6 +166,9 @@ function Dashboard({ modelToLoad }: Props) {
         // This is quick and dirty for the demo, but if it reaches this point, it's either Flowers or Diamonds
         updateLabels(modelOutputs, modelToLoad === ModelSelection.Flowers ? flowerLabels : diamondLabels);
       });  
+    } else {
+      //setLoadedModel(modelToLoad);
+      // TODO: Set labels. This should be done the same way as above. The enum set is artificial. 
     }
 
   }, [modelToLoad])
@@ -242,42 +216,44 @@ function Dashboard({ modelToLoad }: Props) {
     setModelOutputs(updateProbabilities(modelOutputs, newProbs, id));
   }
 
+  const handleCloseOverlay = () => {
+    setLoadedModel(ModelSelection.Custom);
+  };
+
   return (
     <DashboardContext.Provider value={{updateImage}}>
-        <div>
-          {loadedModel !== modelToLoad ? (
-            <div style={curtainStyle}>
-              <p>Loading...</p>
-            </div>
-          ) : (
-            <Container fluid>
-              <Row style={{marginTop: '0.25rem', marginBottom: '0.25rem'}}>
-                <Col lg="3" sm="6">
-                  <ImageCard imgSrc={imageUrls.img1url} id={1} predictedLabel={modelOutputs.image1.predictedLabel} primaryColor={colors[0]} secondaryColor={colors[0]} />
-                </Col>
-                <Col lg="3" sm="6">
-                  <ImageCard imgSrc={imageUrls.img2url} id={2} predictedLabel={modelOutputs.image2.predictedLabel} primaryColor={colors[0]} secondaryColor={colors[0]} />
-                </Col>
-                <Col lg="3" sm="6">
-                  <ImageCard imgSrc={imageUrls.img3url} id={3} predictedLabel={modelOutputs.image3.predictedLabel} primaryColor={colors[0]} secondaryColor={colors[0]} />
-                </Col>
-                <Col lg="3" sm="6">
-                  <ImageCard imgSrc={imageUrls.img4url} id={4} predictedLabel={modelOutputs.image4.predictedLabel} primaryColor={colors[0]} secondaryColor={colors[0]} />
-                </Col>
-              </Row>
-              <Row>
-                <Col md="8">
-                  <BarChartCard modelOutputs={modelOutputs} colors={colors} />
-                </Col>
-                <Col md="4">
-                  <ClassListCard classLabels={modelOutputs.labels} colors={colors} ></ClassListCard>
-                </Col>
-              </Row>
-            </Container>    
-          )}
-        </div>
+      <Container fluid>
+        <Row style={{marginTop: '0.25rem', marginBottom: '0.25rem'}}>
+          <Col lg="3" sm="6">
+            <ImageCard imgSrc={imageUrls.img1url} id={1} predictedLabel={modelOutputs.image1.predictedLabel} primaryColor={colors[0]} secondaryColor={colors[0]} />
+          </Col>
+          <Col lg="3" sm="6">
+            <ImageCard imgSrc={imageUrls.img2url} id={2} predictedLabel={modelOutputs.image2.predictedLabel} primaryColor={colors[0]} secondaryColor={colors[0]} />
+          </Col>
+          <Col lg="3" sm="6">
+            <ImageCard imgSrc={imageUrls.img3url} id={3} predictedLabel={modelOutputs.image3.predictedLabel} primaryColor={colors[0]} secondaryColor={colors[0]} />
+          </Col>
+          <Col lg="3" sm="6">
+            <ImageCard imgSrc={imageUrls.img4url} id={4} predictedLabel={modelOutputs.image4.predictedLabel} primaryColor={colors[0]} secondaryColor={colors[0]} />
+          </Col>
+        </Row>
+        <Row>
+          <Col md="8">
+            <BarChartCard modelOutputs={modelOutputs} colors={colors} />
+          </Col>
+          <Col md="4">
+            <ClassListCard classLabels={modelOutputs.labels} colors={colors} ></ClassListCard>
+          </Col>
+        </Row>
+      </Container>
+      { modelToLoad !== loadedModel && <CurtainOverlay /> }
+      { modelToLoad !== loadedModel && modelToLoad === ModelSelection.Custom && <ModelLoadComponent onClose={handleCloseOverlay} /> }
     </DashboardContext.Provider>
   );
+}
+
+function CurtainOverlay() {
+  return <div style={curtainStyle}></div>;
 }
 
 export default Dashboard;
