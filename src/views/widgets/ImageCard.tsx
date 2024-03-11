@@ -6,7 +6,7 @@ import { DashboardContext } from "views/Dashboard";
 interface Props {
   imgSrc: string;
   id: number;
-  predictedLabel: string;
+  predictedLabel: string | null;
   primaryColor: string;
   secondaryColor: string;
 }
@@ -42,48 +42,6 @@ function ImageCard({imgSrc, id, predictedLabel, primaryColor, secondaryColor}: P
       }
     }
   };
-
-  // Making sure that images are centered and scaled properly
-  // const styles = {
-  //   container: {
-  //     display: 'flex',
-  //     justifyContent: 'center', // Center horizontally
-  //     alignItems: 'center', // Center vertically
-  //     height: '100%', // Adjust this according to your layout
-  //   },
-  //   imageContainer: {
-  //     textAlign: 'center' as 'center',
-  //     height: '256px',
-  //     minWidth: '256px',
-  //     //maxHeight: '100%'
-  //   },
-  //   imageStyle: {
-  //     maxWidth: '100%', // Ensures the image doesn't exceed its container
-  //     maxHeight: '100%', // Ensures the image doesn't exceed its container
-  //     cursor: 'pointer',
-  //   }
-  // }
-
-  // const styles = {
-  //   container: {
-  //     display: 'flex',
-  //     justifyContent: 'center', // Center horizontally
-  //     alignItems: 'center', // Center vertically
-  //     height: '100%', // Adjust this according to your layout
-  //   },
-  //   imageContainer: {
-  //     textAlign: 'center' as 'center',
-  //     height: '256px',
-  //     width: '256px', // Set width instead of minWidth
-  //     maxWidth: '100%', // Ensure the container doesn't exceed its parent
-  //     overflow: 'hidden', // Hide overflow if image exceeds container size
-  //   },
-  //   imageStyle: {
-  //     width: '100%', // Ensure the image fills the container width
-  //     height: 'auto', // Let the browser calculate the height to maintain aspect ratio
-  //     cursor: 'pointer',
-  //   }
-  // }
 
   const styles = {
     container: {
@@ -133,7 +91,7 @@ function ImageCard({imgSrc, id, predictedLabel, primaryColor, secondaryColor}: P
       <Card.Footer>
         <hr />
         <div className="stats">
-          Predicted Label: {predictedLabel}
+          {predictedLabel ? `Predicted Label: ${predictedLabel}` : ''}
         </div>
       </Card.Footer>
 

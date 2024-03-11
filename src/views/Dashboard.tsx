@@ -7,7 +7,8 @@ import BarChartCard from "./widgets/BarChartCard";
 import ClassListCard from "./widgets/ClassListCard";
 import { ModelSelection } from "routes";
 import axios from "axios";
-import ModelLoadComponent from "./ModelLoadComponent";
+import OverlayBoxComponent from "./OverlayBoxComponent";
+import { useMobileMode } from "MobileModeContext";
 
 interface Props {
   modelToLoad: ModelSelection;
@@ -15,8 +16,8 @@ interface Props {
 
 // The server API returns a response matching this schema
 interface ModelOutput {
-  score: number[];
-  predictedLabel: string;
+  score: number[] | null;
+  predictedLabel: string | null;
 }
 
 export interface ModelOutputs {
@@ -89,6 +90,15 @@ const updateLabels = (modelOutputs: ModelOutputs, newLabels: string[]): ModelOut
   return { ...modelOutputs, labels: newLabels };
 }
 
+const clearPredictions = (modelOutputs: ModelOutputs): ModelOutputs => {
+  return { ...modelOutputs,
+    image1: {predictedLabel: null, score: null},
+    image2: {predictedLabel: null, score: null},
+    image3: {predictedLabel: null, score: null},
+    image4: {predictedLabel: null, score: null},
+  };
+}
+
 const diamondLabels = ['Cushion', 'Emerald', 'Heart', 'Marquise', 'Oval', 'Pear', 'Princess', 'Round'];
 const flowerLabels = ['Daisy', 'Dandelion'];
 
@@ -128,17 +138,65 @@ function Dashboard({ modelToLoad }: Props) {
   const [ colors, setColors ] = useState(colorPalette);
   const [ loadedModel, setLoadedModel ] = useState(ModelSelection.None);
 
+  // a bit of a hack to force a refresh
+  const [refreshFlag, setRefreshFlag] = useState(false);
+
   const [ imageUrls, setImageUrls ] = useState(blankInit);
 
   // For the sake of the demonstration, the diamond images and flower images are treated differently
   // so that they can persist after changing tabs and changing back.
-  const [ flowerImages, setFlowerImages ] = useState(flowerImagesInit);
-  const [ diamondImages, setDiamondImages ] = useState(diamondImagesInit);
+  const [ flowerImageUrls, setFlowerImageUrls ] = useState(flowerImagesInit);
+  const [ diamondImageUrls, setDiamondImageUrls ] = useState(diamondImagesInit);
 
   const [ diamondModelOutputs, setDiamondModelOutputs ] = useState(diamondSeedData);
   const [ flowerModelOutputs, setFlowerModelOutputs ] = useState(flowerSeedData); // TODO: Move up one level
 
   const [ modelOutputs, setModelOutputs ] = useState(diamondModelOutputs); // TODO: Move up one level
+
+  const { isMobile } = useMobileMode();
+
+  const restoreImages = () => {
+    switch (loadedModel) {
+      case ModelSelection.Diamonds:
+        setImageUrls(diamondImageUrls);
+        break;
+      case ModelSelection.Flowers:
+        setImageUrls(flowerImageUrls);
+        break;
+      default:
+        // When opening a new Custom model, start from a blank slate
+        setImageUrls(blankInit);
+        break;
+    }
+  }
+
+  const restoreModelOutputs = () => {
+    switch (loadedModel) {
+      case ModelSelection.Diamonds:
+        setModelOutputs(diamondModelOutputs);
+        break;
+      case ModelSelection.Flowers:
+        setModelOutputs(flowerModelOutputs);
+        break;
+      default:
+        break;
+    }
+  }
+
+  const updateAndCacheModelOutputs = (model: ModelSelection, newModelOutput: ModelOutputs) => {
+    switch (model) {
+      case ModelSelection.Diamonds:
+        setDiamondModelOutputs(newModelOutput);
+        break;
+      case ModelSelection.Flowers:
+        setFlowerModelOutputs(newModelOutput);
+        break;
+      default:
+        break;
+    }
+
+    setModelOutputs(newModelOutput);
+  }
 
   useEffect(() => {
 
@@ -156,15 +214,16 @@ function Dashboard({ modelToLoad }: Props) {
         console.log(`Setting model to ${modelToLoad}`)
         setLoadedModel(modelToLoad);
         console.log('Setting labels by way of Server')
-        updateLabels(modelOutputs, newLabels);
+        updateAndCacheModelOutputs(modelToLoad, updateLabels(modelOutputs, newLabels));
       })
       .catch(error => {
         console.error('Error:', error);
-        console.log(`Setting model to ${modelToLoad}`)
+        console.log(`Setting model (in error block) to ${modelToLoad}`)
         setLoadedModel(modelToLoad); // TODO: Remove, but need to make sure the app doesn't get stuck
 
         // This is quick and dirty for the demo, but if it reaches this point, it's either Flowers or Diamonds
-        updateLabels(modelOutputs, modelToLoad === ModelSelection.Flowers ? flowerLabels : diamondLabels);
+        console.log(`Setting outputs (in error block)`)
+        updateAndCacheModelOutputs(modelToLoad, updateLabels(modelOutputs, modelToLoad === ModelSelection.Flowers ? flowerLabels : diamondLabels));
       });  
     } else {
       //setLoadedModel(modelToLoad);
@@ -174,50 +233,50 @@ function Dashboard({ modelToLoad }: Props) {
   }, [modelToLoad])
 
   useEffect(() => {
-    console.log(`Loaded model: ${loadedModel.toString()}`)
+    //console.log(`Updating with model: ${loadedModel.toString()}\n\rand values: ${JSON.stringify(modelOutputs)}`)
+    restoreImages();
+    restoreModelOutputs();
+  }, [loadedModel, flowerImageUrls, diamondImageUrls]);
 
-    switch (loadedModel) {
-      case ModelSelection.Diamonds:
-        setImageUrls(diamondImages);
-        setModelOutputs(diamondModelOutputs);
-        break;
-      case ModelSelection.Flowers:
-        setImageUrls(flowerImages);
-        setModelOutputs(flowerModelOutputs);
-        break;
-      default:
-        // TODO: Use placeholders
-        setImageUrls(blankInit);
-        break;
-    }
-  }, [loadedModel, flowerImages, diamondImages]);
+  // useEffect(() => {
+  //   console.log('Forcing update');
+  //   console.log(`Force refresh with model: ${loadedModel.toString()}\n\rand values: ${JSON.stringify(modelOutputs)}`)
+
+  //   setRefreshFlag(current => !current);
+  // }, [JSON.stringify(modelOutputs)]);
 
   const updateImage = (newUrl: string, newProbs: ModelOutput, id: number) => {
     switch (loadedModel) {
       case ModelSelection.Diamonds:
-        setDiamondImages(updateImageUrls(diamondImages, newUrl, id));
-
-        // Not strictly necessary, but it optimizes things for the demo by making data persist as the user switches back and forth between models.
+        // Not strictly necessary, but it optimizes the demo by making data persist as the user switches back and forth between models. (Eliminating a server request)
+        setDiamondImageUrls(updateImageUrls(diamondImageUrls, newUrl, id));
         setDiamondModelOutputs(updateProbabilities(diamondModelOutputs, newProbs, id));
-
         break;
       case ModelSelection.Flowers:
-        setFlowerImages(updateImageUrls(flowerImages, newUrl, id));
-
-        // Not strictly necessary, but it optimizes things for the demo by making data persist as the user switches back and forth between models.
+        // Not strictly necessary, but it optimizes the demo by making data persist as the user switches back and forth between models. (Eliminating a server request)
+        setFlowerImageUrls(updateImageUrls(flowerImageUrls, newUrl, id));
         setFlowerModelOutputs(updateProbabilities(flowerModelOutputs, newProbs, id));
-
         break;
       case ModelSelection.Custom:
-        setImageUrls(blankInit);
+        setImageUrls(updateImageUrls(imageUrls, newUrl, id));
         break;
     }
 
-    setModelOutputs(updateProbabilities(modelOutputs, newProbs, id));
+    console.log(`Setting model (in updateImage callback)`)
+    updateAndCacheModelOutputs(loadedModel, updateProbabilities(modelOutputs, newProbs, id));
   }
 
-  const handleCloseOverlay = () => {
-    setLoadedModel(ModelSelection.Custom);
+  const handleSteppedThroughOverlay = () => {
+    axios.get('https://localhost:44346/api/Prediction/labels')
+    .then(res => {
+      console.log('Response from API Labels:', res.data); // Debugging statement
+      const newLabels: string[] = res.data;
+      console.log(`Setting model to ${modelToLoad}`)
+      setLoadedModel(modelToLoad);
+      console.log('Setting labels by way of Server')
+      const tmp = updateLabels(modelOutputs, newLabels);
+      updateAndCacheModelOutputs(ModelSelection.Custom, clearPredictions(tmp));
+    });
   };
 
   return (
@@ -247,7 +306,7 @@ function Dashboard({ modelToLoad }: Props) {
         </Row>
       </Container>
       { modelToLoad !== loadedModel && <CurtainOverlay /> }
-      { modelToLoad !== loadedModel && modelToLoad === ModelSelection.Custom && <ModelLoadComponent onClose={handleCloseOverlay} /> }
+      { modelToLoad !== loadedModel && modelToLoad === ModelSelection.Custom && <OverlayBoxComponent onClose={handleSteppedThroughOverlay} isMobile={isMobile} frameBackground={"#999999"} contentBackground={"#cfcfcf"} /> }
     </DashboardContext.Provider>
   );
 }

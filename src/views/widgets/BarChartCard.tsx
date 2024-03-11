@@ -24,7 +24,7 @@ interface Props {
   colors: string[];
 }
 
-function generateData(labels: string[], img1probs: number[], img2probs: number[], img3probs: number[], img4probs: number[]): DataForRecharts[] {
+function generateData(labels: string[], img1probs: number[] | null, img2probs: number[] | null, img3probs: number[] | null, img4probs: number[] | null): DataForRecharts[] {
   return labels.map((x, i) => {
     return {
       nameOfSeries: x, // TODO: Make it so that this name won't potentially clash with a classification class.
@@ -36,7 +36,7 @@ function generateData(labels: string[], img1probs: number[], img2probs: number[]
   });
 }
 
-function generateKeyedData(labels: string[], img1probs: number[], img2probs: number[], img3probs: number[], img4probs: number[]): DataForRecharts[] {
+function generateKeyedData(labels: string[], img1probs: number[] | null, img2probs: number[] | null, img3probs: number[] | null, img4probs: number[] | null): DataForRecharts[] {
   const images = [img1probs, img2probs, img3probs, img4probs];
   const names = ['Image 1', 'Image 2', 'Image 3', 'Image 4'];
 

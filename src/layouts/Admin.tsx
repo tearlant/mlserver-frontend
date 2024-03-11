@@ -15,7 +15,7 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React, { Component, useRef, useState } from "react";
+import React, { Component, createContext, useContext, useEffect, useRef, useState } from "react";
 import { useLocation, Route, Routes } from "react-router-dom";
 
 import AdminNavbar from "../components/Navbars/AdminNavbar";
@@ -27,6 +27,16 @@ import routes, { LocalRoute } from "../routes";
 import sidebarImage from "assets/img/sidebar-3.jpg";
 import axios from "axios";
 
+interface MobileModeContextType {
+  isMobile: boolean;
+}
+
+const MobileModeContext = createContext<MobileModeContextType>({
+  isMobile: false,
+});
+
+export const useMobileMode = () => useContext(MobileModeContext);
+
 function Admin() {
   const [image, setImage] = useState(sidebarImage);
   const [color, setColor] = useState("black");
@@ -35,7 +45,7 @@ function Admin() {
   const location = useLocation();
   const mainPanel = useRef<HTMLDivElement>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     axios.defaults.withCredentials = true;
 
     document.documentElement.scrollTop = 0;
@@ -51,29 +61,47 @@ function Admin() {
       if (element !== null && element.parentNode !== null) element.parentNode.removeChild(element);
     }
   }, [location]);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 600);
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize(); // Initial check on component mount
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   return (
     <>
-      <div className="wrapper">
-        <Sidebar color={color} image={hasImage ? image : ""} routes={routes} />
-        <div className="main-panel" ref={mainPanel}>
-          <AdminNavbar />
-          <div className="content">
-            <Routes>
-              {routes.map((route, index) => <Route key={route.path} path={route.path} element={<route.component modelToLoad={route.loadedModel}/>}></Route>)}
-            </Routes>
+      <MobileModeContext.Provider value={{ isMobile }}>
+        <div className="wrapper">
+          <Sidebar color={color} image={hasImage ? image : ""} routes={routes} />
+          <div className="main-panel" ref={mainPanel}>
+            <AdminNavbar />
+            <div className="content">
+              <Routes>
+                {routes.map((route, index) => <Route key={route.path} path={route.path} element={<route.component modelToLoad={route.loadedModel}/>}></Route>)}
+              </Routes>
+            </div>
+            <Footer />
           </div>
-          <Footer />
         </div>
-      </div>
-      {/*
-      <FixedPlugin
-        hasImage={hasImage}
-        setHasImage={() => setHasImage(!hasImage)}
-        color={color}
-        setColor={(color) => setColor(color)}
-        image={image}
-        setImage={(image) => setImage(image)}
-      />*/}
+        {/*
+        <FixedPlugin
+          hasImage={hasImage}
+          setHasImage={() => setHasImage(!hasImage)}
+          color={color}
+          setColor={(color) => setColor(color)}
+          image={image}
+          setImage={(image) => setImage(image)}
+        />*/}
+      </MobileModeContext.Provider>
     </>
   );
 }

@@ -12,6 +12,7 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 
 import AdminLayout from './layouts/Admin';
 import { makeServer } from 'mocks/mirageServer';
+import MobileModeProvider from 'MobileModeContext';
 
 // If using a mock server for testing
 //if (process.env.NODE_ENV === 'development') makeServer();
@@ -21,12 +22,14 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
+    <MobileModeProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/admin/*" element={<AdminLayout />} />
           <Route path="/" element={<Navigate to="/admin/diamonds" />} />
         </Routes>
       </BrowserRouter>
+    </MobileModeProvider>
   </React.StrictMode>
 );
 
