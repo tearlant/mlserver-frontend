@@ -26,7 +26,7 @@ root.render(
       <BrowserRouter>
         <Routes>
           <Route path="/admin/*" element={<AdminLayout />} />
-          <Route path="/" element={<Navigate to="/admin/diamonds" />} />
+          <Route path="/" element={<Navigate to="/admin/animals" />} />
         </Routes>
       </BrowserRouter>
     </MobileModeProvider>

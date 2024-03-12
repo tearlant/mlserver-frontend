@@ -15,13 +15,14 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React, { useRef } from "react";
+import React, { useContext, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { Navbar, Container, Nav, Dropdown, Button } from "react-bootstrap";
-
-import routes from "../../routes";
+import { CurtainContext } from "layouts/Admin";
 
 function Header() {
+
+  const { setShowCurtain, setShowDescription } = useContext(CurtainContext);
 
   // TODO: This is an ugly workaround necessary to translate older javascript code.
   // This should be improved, but for now, it works
@@ -43,14 +44,6 @@ function Header() {
     document.body.appendChild(node);
   };
 
-  const getBrandText = () => {
-    for (let i = 0; i < routes.length; i++) {
-      if (location.pathname.indexOf(routes[i].layout + routes[i].path) !== -1) {
-        return routes[i].name;
-      }
-    }
-    return "Brand";
-  };
   return (
     <div ref={btnRef}>
       <Navbar bg="light" expand="lg">
@@ -63,99 +56,34 @@ function Header() {
             >
               <i className="fas fa-ellipsis-v"></i>
             </Button>
-            <Navbar.Brand
-              href="#home"
-              onClick={(e) => e.preventDefault()}
-              className="mr-2"
-            >
-              {getBrandText()}
-            </Navbar.Brand>
           </div>
           <Navbar.Toggle aria-controls="basic-navbar-nav" className="mr-2">
             <span className="navbar-toggler-bar burger-lines"></span>
             <span className="navbar-toggler-bar burger-lines"></span>
             <span className="navbar-toggler-bar burger-lines"></span>
           </Navbar.Toggle>
-          <Navbar.Collapse id="basic-navbar-nav">
+          <Navbar.Collapse id="basic-navbar-nav" className="d-flex justify-content-between">
             <Nav className="nav mr-auto" navbar>
               <Nav.Item>
-                <Nav.Link
-                  data-toggle="dropdown"
-                  href="#pablo"
-                  onClick={(e) => e.preventDefault()}
-                  className="m-0"
-                >
-                  <i className="nc-icon nc-palette"></i>
-                  <span className="d-lg-none ml-1">Dashboard</span>
+                <Nav.Link className="m-0" href="#pablo" onClick={() => {setShowDescription(true); setShowCurtain(true);}}>
+                  <span className="d-lg-block">About</span>
                 </Nav.Link>
               </Nav.Item>
-              <Dropdown as={Nav.Item}>
-                <Dropdown.Toggle
-                  as={Nav.Link}
-                  data-toggle="dropdown"
-                  id="dropdown-67443507"
-                  variant="default"
-                  className="m-0"
-                >
-                  <i className="nc-icon nc-planet"></i>
-                  <span className="notification">5</span>
-                  <span className="d-lg-none ml-1">Notification</span>
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                  <Dropdown.Item
-                    href="#pablo"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    Notification 1
-                  </Dropdown.Item>
-                  <Dropdown.Item
-                    href="#pablo"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    Notification 2
-                  </Dropdown.Item>
-                  <Dropdown.Item
-                    href="#pablo"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    Notification 3
-                  </Dropdown.Item>
-                  <Dropdown.Item
-                    href="#pablo"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    Notification 4
-                  </Dropdown.Item>
-                  <Dropdown.Item
-                    href="#pablo"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    Another notification
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
+
               <Nav.Item>
-                <Nav.Link
-                  className="m-0"
-                  href="#pablo"
-                  onClick={(e) => e.preventDefault()}
-                >
-                  <i className="nc-icon nc-zoom-split"></i>
-                  <span className="d-lg-block"> Search</span>
+                <Nav.Link className="m-0" href="#pablo" onClick={(e) => e.preventDefault()}>
+                  <span className="d-lg-block">Settings</span>
                 </Nav.Link>
               </Nav.Item>
-            </Nav>
-            <Nav className="ml-auto" navbar>
+
               <Nav.Item>
-                <Nav.Link
-                  className="m-0"
-                  href="#pablo"
-                  onClick={(e) => e.preventDefault()}
-                >
-                  <span className="no-icon">Account</span>
+                <Nav.Link className="m-0" href="https://github.com/tearlant" target="_blank">
+                  <span className="d-lg-block">Source Code</span>
                 </Nav.Link>
               </Nav.Item>
-              <Dropdown as={Nav.Item}>
+
+              <Nav.Item>
+                <Dropdown as={Nav.Item}>
                 <Dropdown.Toggle
                   aria-expanded={false}
                   aria-haspopup={true}
@@ -165,51 +93,30 @@ function Header() {
                   variant="default"
                   className="m-0"
                 >
-                  <span className="no-icon">Dropdown</span>
+                <span className="no-icon">Tool Stack</span>
                 </Dropdown.Toggle>
-                <Dropdown.Menu aria-labelledby="navbarDropdownMenuLink">
-                  <Dropdown.Item
-                    href="#pablo"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    Action
-                  </Dropdown.Item>
-                  <Dropdown.Item
-                    href="#pablo"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    Another action
-                  </Dropdown.Item>
-                  <Dropdown.Item
-                    href="#pablo"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    Something
-                  </Dropdown.Item>
-                  <Dropdown.Item
-                    href="#pablo"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    Something else here
-                  </Dropdown.Item>
-                  <div className="divider"></div>
-                  <Dropdown.Item
-                    href="#pablo"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    Separated link
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-              <Nav.Item>
-                <Nav.Link
-                  className="m-0"
-                  href="#pablo"
-                  onClick={(e) => e.preventDefault()}
-                >
-                  <span className="no-icon">Log out</span>
-                </Nav.Link>
+                  <Dropdown.Menu aria-labelledby="navbarDropdownMenuLink">
+                    <Dropdown.Item href="https://www.tensorflow.org/" target="_blank">Tensorflow</Dropdown.Item>
+                    <Dropdown.Item href="https://dotnet.microsoft.com/en-us/apps/machinelearning-ai/ml-dotnet" target="_blank">ML.NET (Backend)</Dropdown.Item>
+                    <Dropdown.Item href="https://www.tensorflow.org/api_docs/python/tf/keras/applications/inception_v3/InceptionV3" target="_blank">Inception (Tensorflow model)</Dropdown.Item>
+                    <Dropdown.Item href="https://www.kaggle.com/datasets/" target="_blank">Kaggle (training data)</Dropdown.Item>
+                    <div className="divider"></div>
+                    <Dropdown.Item href="https://react.dev/" target="_blank">React</Dropdown.Item>
+                    <Dropdown.Item href="https://recharts.org/en-US/" target="_blank">Recharts</Dropdown.Item>
+                    <Dropdown.Item href="https://www.creative-tim.com/product/light-bootstrap-dashboard-react" target="_blank">Creative Tim</Dropdown.Item>
+                    <Dropdown.Item href="https://react-bootstrap.netlify.app/" target="_blank">React Bootstrap</Dropdown.Item>
+                    <Dropdown.Item href="https://mui.com/material-ui/" target="_blank">Material UI</Dropdown.Item>
+                    <div className="divider"></div>
+                    <Dropdown.Item>Hosted on AWS</Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+
               </Nav.Item>
+            </Nav>
+            <Nav className="ml-auto" navbar>
+              <Nav.Link className="m-0" href="https://tearlant.com">
+                <span className="d-lg-block">Return to portfolio</span>
+              </Nav.Link>
             </Nav>
           </Navbar.Collapse>
         </Container>

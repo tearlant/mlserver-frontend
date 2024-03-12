@@ -46,7 +46,7 @@ function Sidebar({ color, image, routes }: Props) {
             <img src={require("assets/img/reactlogo.png")} alt="..." />
           </div>
           <a className="simple-text">
-            ML SERVER
+            PLUG and PL-AI
           </a>
         </div>
         <Nav>

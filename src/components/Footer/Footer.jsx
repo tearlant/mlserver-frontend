@@ -26,30 +26,24 @@ class Footer extends Component {
           <nav>
             <ul className="footer-menu">
               <li>
-                <a href="#pablo" onClick={(e) => e.preventDefault()}>
+                <a href="https://www.tearlant.com/" target="_blank">
                   Home
                 </a>
               </li>
               <li>
-                <a href="#pablo" onClick={(e) => e.preventDefault()}>
-                  Company
-                </a>
-              </li>
-              <li>
-                <a href="#pablo" onClick={(e) => e.preventDefault()}>
+                <a href="https://www.tearlant.com/#portfolio" target="_blank">
                   Portfolio
                 </a>
               </li>
               <li>
-                <a href="#pablo" onClick={(e) => e.preventDefault()}>
-                  Blog
+                <a href="https://www.tearlant.com/contact/" target="_blank">
+                  Contact me
                 </a>
               </li>
             </ul>
             <p className="copyright text-center">
               © {new Date().getFullYear()}{" "}
-              <a href="http://www.creative-tim.com">Creative Tim</a>, made with
-              love for a better web
+              <a href="http://www.tearlant.com">Patterns on a Screen</a>, all rights reserved.
             </p>
           </nav>
         </Container>

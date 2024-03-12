@@ -1,4 +1,4 @@
-import { Server, Response } from 'miragejs';
+import { Server } from 'miragejs';
 
 const sum = (arr: number[]) => arr.reduce((x, y) => x + y);
 const normalize = (arr: number[]) => {

@@ -20,8 +20,8 @@ import Dashboard from "./views/Dashboard";
 
 export enum ModelSelection {
   None = '',
+  Animals = 'animals',
   Diamonds = 'diamonds',
-  Flowers = 'flowers',
   Custom = 'custom'
 }
 
@@ -37,25 +37,25 @@ export interface LocalRoute {
 
 const dashboardRoutes: LocalRoute[] = [
   {
+    path: "/animals",
+    name: "Animals",
+    icon: "nc-icon nc-stre-right",
+    component: Dashboard,
+    layout: "/admin",
+    loadedModel: ModelSelection.Animals
+  },
+  {
     path: "/diamonds",
     name: "Diamonds",
-    icon: "nc-icon nc-chart-pie-35",
+    icon: "nc-icon nc-stre-right",
     component: Dashboard,
     layout: "/admin",
     loadedModel: ModelSelection.Diamonds
   },
   {
-    path: "/flowers",
-    name: "Flowers",
-    icon: "nc-icon nc-circle-09",
-    component: Dashboard,
-    layout: "/admin",
-    loadedModel: ModelSelection.Flowers
-  },
-  {
     path: "/custom",
     name: "Custom Model",
-    icon: "nc-icon nc-paper-2",
+    icon: "nc-icon nc-simple-add",
     component: Dashboard,
     layout: "/admin",
     loadedModel: ModelSelection.Custom

@@ -1,7 +1,5 @@
-import React, { createContext, useEffect, useState } from "react";
-// react-bootstrap components
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { Container, Row, Col } from "react-bootstrap";
-
 import ImageCard from "./widgets/ImageCard"
 import BarChartCard from "./widgets/BarChartCard";
 import ClassListCard from "./widgets/ClassListCard";
@@ -9,6 +7,15 @@ import { ModelSelection } from "routes";
 import axios from "axios";
 import OverlayBoxComponent from "./OverlayBoxComponent";
 import { useMobileMode } from "MobileModeContext";
+import ModelLoadStepper from "./widgets/ModelLoadStepper";
+import { appDescriptionVerbiage } from "./verbiage/AppDescriptionVerbiage";
+import { Button, Typography } from "@mui/material";
+import { Link } from "react-router-dom";
+import CurtainOverlay from "./widgets/CurtainOverlay";
+import urljoin from 'url-join';
+import { Images, animalImagesInit, blankInit, diamondImagesInit } from "utilities/imageProvider";
+import { CurtainContext } from "layouts/Admin";
+import { animalLabels, animalSeedData, diamondLabels, diamondSeedData } from "utilities/seedDataProvider";
 
 interface Props {
   modelToLoad: ModelSelection;
@@ -26,40 +33,6 @@ export interface ModelOutputs {
   image2: ModelOutput;
   image3: ModelOutput;
   image4: ModelOutput;
-}
-
-interface Images {
-  img1url: string;
-  img2url: string;
-  img3url: string;
-  img4url: string;
-}
-
-const sum = (arr: number[]) => arr.reduce((x, y) => x + y);
-const normalize = (arr: number[]) => {
-  const factor = 1.0 / sum(arr);
-  return arr.map(x => factor * x);
-}
-
-const flowerImagesInit: Images = {
-  img1url: process.env.PUBLIC_URL + "/img/flowers/daisy1.jpg",
-  img2url: process.env.PUBLIC_URL + "/img/flowers/daisy2.jpg",
-  img3url: process.env.PUBLIC_URL + "/img/flowers/dandelion3.jpg",
-  img4url: process.env.PUBLIC_URL + "/img/flowers/daisy4.jpg"
-}
-
-const diamondImagesInit: Images = {
-  img1url: process.env.PUBLIC_URL + "/img/diamonds/marquise1.jpg",
-  img2url: process.env.PUBLIC_URL + "/img/diamonds/pear2.jpg",
-  img3url: process.env.PUBLIC_URL + "/img/diamonds/princess3.jpg",
-  img4url: process.env.PUBLIC_URL + "/img/diamonds/cushion4.jpg"
-}
-
-const blankInit: Images = {
-  img1url: process.env.PUBLIC_URL + "/img/placeholder.png",
-  img2url: process.env.PUBLIC_URL + "/img/placeholder.png",
-  img3url: process.env.PUBLIC_URL + "/img/placeholder.png",
-  img4url: process.env.PUBLIC_URL + "/img/placeholder.png"
 }
 
 const updateImageUrls = (images: Images, newUrl: string, id: number): Images => {
@@ -99,69 +72,58 @@ const clearPredictions = (modelOutputs: ModelOutputs): ModelOutputs => {
   };
 }
 
-const diamondLabels = ['Cushion', 'Emerald', 'Heart', 'Marquise', 'Oval', 'Pear', 'Princess', 'Round'];
-const flowerLabels = ['Daisy', 'Dandelion'];
-
-const diamondSeedData: ModelOutputs = {
-  labels: diamondLabels,
-  image1: {predictedLabel: 'Marquise', score: normalize([0.0753362838013259, 4.19893463598376682, 0.0798603538584275, 0.061255409103740124, 0.12040283375409261, 0.10426414060055768, 0.15884397185836902, 0.20110237103972042])},
-  image2: {predictedLabel: 'Pear', score: normalize([0.25086750253437967, 0.007454750678838048, 0.04882508510660393, 6.07589220367849187, 0.17531103030021972, 0.08440417660940411, 0.24140865891759103, 0.1158365921744717])},
-  image3: {predictedLabel: 'Princess', score: normalize([0.034083808119851136, 0.23171925712834002, 0.18163283802794897, 0.010319295958000445, 0.24345578920529123, 5.14495484611004228, 0.12657743382975964, 0.027256731620766222])},
-  image4: {predictedLabel: 'Cushion', score: normalize([0.1442332022214041, 7.1455701694354531, 2.18621825426328212, 0.10887413324541537, 0.10173619751660662, 0.006709650504642851, 0.17385756635229974, 0.13280082646089614])}
-}
-
-const flowerSeedData: ModelOutputs = {
-  labels: flowerLabels,
-  image1: {predictedLabel: 'Daisy', score: normalize([85, 14])},
-  image2: {predictedLabel: 'Daisy', score: normalize([107, 31])},
-  image3: {predictedLabel: 'Dandelion', score: normalize([3, 17.6])},
-  image4: {predictedLabel: 'Daisy', score: normalize([67.83, 9.25423])}
-}
-
-const colorPalette = [ "#030637", "#3C0753", "#720455", "#910A67" ];
-
-// TODO: Move this to a CSS file
-const curtainStyle: React.CSSProperties = {
-  position: "absolute",
-  top: 0,
-  left: 0,
-  width: "100%",
-  height: "100%",
-  backgroundColor: "rgba(0, 0, 0, 0.5)",
-};
+// TODO: Move this into a theme
+const colorPalette = ["#0b132b", "#1c2541", "#3a506b", "#5bc0be", "6fffe9"];
+const colorSet = ["#0b132b", "#1c2541", "#3a506b", "#5bc0be"];
+const accent1 = colorPalette[4];
+const accent2 = "#236444"; // A random number that I put in for testing, but I quite like the aesthetic.
 
 export const DashboardContext = createContext({
   updateImage: (newUrl: string, newProbs: ModelOutput, id: number) => {}
 });
 
 function Dashboard({ modelToLoad }: Props) {
-  const [ colors, setColors ] = useState(colorPalette);
-  const [ loadedModel, setLoadedModel ] = useState(ModelSelection.None);
+  const [ colors, setColors ] = useState(colorSet);
+  const [ accents, setAccents ] = useState({accent1: accent1, accent2: accent2}); // TODO: Move this to a global store
 
-  // a bit of a hack to force a refresh
-  const [refreshFlag, setRefreshFlag] = useState(false);
+  const [ loadedModel, setLoadedModel ] = useState(ModelSelection.None);
+  //const [ showCurtain, setShowCurtain ] = useState(true);
+  //const [ showDescription, setShowDescription ] = useState(true);
 
   const [ imageUrls, setImageUrls ] = useState(blankInit);
 
-  // For the sake of the demonstration, the diamond images and flower images are treated differently
+  // For the sake of the demonstration, the diamond images and animal images are treated differently
   // so that they can persist after changing tabs and changing back.
-  const [ flowerImageUrls, setFlowerImageUrls ] = useState(flowerImagesInit);
+  const [ animalImageUrls, setAnimalImageUrls ] = useState(animalImagesInit);
   const [ diamondImageUrls, setDiamondImageUrls ] = useState(diamondImagesInit);
 
   const [ diamondModelOutputs, setDiamondModelOutputs ] = useState(diamondSeedData);
-  const [ flowerModelOutputs, setFlowerModelOutputs ] = useState(flowerSeedData); // TODO: Move up one level
+  const [ animalModelOutputs, setAnimalModelOutputs ] = useState(animalSeedData); // TODO: Move up one level
 
   const [ modelOutputs, setModelOutputs ] = useState(diamondModelOutputs); // TODO: Move up one level
 
   const { isMobile } = useMobileMode();
+  const { showCurtain, setShowCurtain, showDescription, setShowDescription } = useContext(CurtainContext);
+
+  // This is a caching mechanism to make sure the demo does not need to make as many server calls, especially while switching between tabs.
+  const getNextModelDataToLoad = (nextModel: ModelSelection) => {
+    switch (nextModel) {
+      case ModelSelection.Diamonds:
+        return diamondModelOutputs;
+      case ModelSelection.Animals:
+        return animalModelOutputs;
+      default:
+        return clearPredictions(modelOutputs);
+    }
+  }
 
   const restoreImages = () => {
     switch (loadedModel) {
       case ModelSelection.Diamonds:
         setImageUrls(diamondImageUrls);
         break;
-      case ModelSelection.Flowers:
-        setImageUrls(flowerImageUrls);
+      case ModelSelection.Animals:
+        setImageUrls(animalImageUrls);
         break;
       default:
         // When opening a new Custom model, start from a blank slate
@@ -175,8 +137,8 @@ function Dashboard({ modelToLoad }: Props) {
       case ModelSelection.Diamonds:
         setModelOutputs(diamondModelOutputs);
         break;
-      case ModelSelection.Flowers:
-        setModelOutputs(flowerModelOutputs);
+      case ModelSelection.Animals:
+        setModelOutputs(animalModelOutputs);
         break;
       default:
         break;
@@ -188,8 +150,8 @@ function Dashboard({ modelToLoad }: Props) {
       case ModelSelection.Diamonds:
         setDiamondModelOutputs(newModelOutput);
         break;
-      case ModelSelection.Flowers:
-        setFlowerModelOutputs(newModelOutput);
+      case ModelSelection.Animals:
+        setAnimalModelOutputs(newModelOutput);
         break;
       default:
         break;
@@ -200,50 +162,42 @@ function Dashboard({ modelToLoad }: Props) {
 
   useEffect(() => {
 
-    const fixedModels: Set<ModelSelection> = new Set([ModelSelection.Diamonds, ModelSelection.Flowers])
+    const fixedModels: Set<ModelSelection> = new Set([ModelSelection.Diamonds, ModelSelection.Animals])
 
     if (fixedModels.has(modelToLoad)) {
-      axios.get(`https://localhost:44346/api/FixedModels/${modelToLoad}`)
+      const apiRoot = process.env.REACT_APP_API_ROOT || 'localhost:44346';
+      axios.get(urljoin(apiRoot, 'api', 'FixedModels', modelToLoad))
       .then(response1 => {
           console.log('First Response from API:', response1.data); // Debugging statement
-          return axios.get('https://localhost:44346/api/Prediction/labels');
+          return axios.get(urljoin(apiRoot, 'api', 'Prediction', 'labels'));
       })
       .then(response2 => {
         const newLabels: string[] = response2.data;
         console.log('Second Response from API:', response2.data); // Debugging statement
-        console.log(`Setting model to ${modelToLoad}`)
         setLoadedModel(modelToLoad);
-        console.log('Setting labels by way of Server')
-        updateAndCacheModelOutputs(modelToLoad, updateLabels(modelOutputs, newLabels));
+        const modelData = getNextModelDataToLoad(modelToLoad);
+        updateAndCacheModelOutputs(modelToLoad, updateLabels(modelData, newLabels));
       })
       .catch(error => {
         console.error('Error:', error);
-        console.log(`Setting model (in error block) to ${modelToLoad}`)
         setLoadedModel(modelToLoad); // TODO: Remove, but need to make sure the app doesn't get stuck
 
-        // This is quick and dirty for the demo, but if it reaches this point, it's either Flowers or Diamonds
-        console.log(`Setting outputs (in error block)`)
-        updateAndCacheModelOutputs(modelToLoad, updateLabels(modelOutputs, modelToLoad === ModelSelection.Flowers ? flowerLabels : diamondLabels));
+        // This is quick and dirty for the demo, but if it reaches this point, it's either Animals or Diamonds
+        updateAndCacheModelOutputs(modelToLoad, updateLabels(modelOutputs, modelToLoad === ModelSelection.Animals ? animalLabels : diamondLabels));
       });  
     } else {
       //setLoadedModel(modelToLoad);
       // TODO: Set labels. This should be done the same way as above. The enum set is artificial. 
     }
 
+    setShowCurtain(showDescription || modelToLoad !== loadedModel);
   }, [modelToLoad])
 
   useEffect(() => {
-    //console.log(`Updating with model: ${loadedModel.toString()}\n\rand values: ${JSON.stringify(modelOutputs)}`)
     restoreImages();
     restoreModelOutputs();
-  }, [loadedModel, flowerImageUrls, diamondImageUrls]);
-
-  // useEffect(() => {
-  //   console.log('Forcing update');
-  //   console.log(`Force refresh with model: ${loadedModel.toString()}\n\rand values: ${JSON.stringify(modelOutputs)}`)
-
-  //   setRefreshFlag(current => !current);
-  // }, [JSON.stringify(modelOutputs)]);
+    setShowCurtain(showDescription || modelToLoad !== loadedModel);
+  }, [loadedModel, animalImageUrls, diamondImageUrls, showDescription]);
 
   const updateImage = (newUrl: string, newProbs: ModelOutput, id: number) => {
     switch (loadedModel) {
@@ -252,10 +206,10 @@ function Dashboard({ modelToLoad }: Props) {
         setDiamondImageUrls(updateImageUrls(diamondImageUrls, newUrl, id));
         setDiamondModelOutputs(updateProbabilities(diamondModelOutputs, newProbs, id));
         break;
-      case ModelSelection.Flowers:
+      case ModelSelection.Animals:
         // Not strictly necessary, but it optimizes the demo by making data persist as the user switches back and forth between models. (Eliminating a server request)
-        setFlowerImageUrls(updateImageUrls(flowerImageUrls, newUrl, id));
-        setFlowerModelOutputs(updateProbabilities(flowerModelOutputs, newProbs, id));
+        setAnimalImageUrls(updateImageUrls(animalImageUrls, newUrl, id));
+        setAnimalModelOutputs(updateProbabilities(animalModelOutputs, newProbs, id));
         break;
       case ModelSelection.Custom:
         setImageUrls(updateImageUrls(imageUrls, newUrl, id));
@@ -267,17 +221,55 @@ function Dashboard({ modelToLoad }: Props) {
   }
 
   const handleSteppedThroughOverlay = () => {
-    axios.get('https://localhost:44346/api/Prediction/labels')
+    const apiRoot = process.env.REACT_APP_API_ROOT || 'localhost:44346';
+
+    axios.get(urljoin(apiRoot, 'api', 'Prediction', 'labels'))
     .then(res => {
       console.log('Response from API Labels:', res.data); // Debugging statement
       const newLabels: string[] = res.data;
-      console.log(`Setting model to ${modelToLoad}`)
       setLoadedModel(modelToLoad);
-      console.log('Setting labels by way of Server')
       const tmp = updateLabels(modelOutputs, newLabels);
       updateAndCacheModelOutputs(ModelSelection.Custom, clearPredictions(tmp));
     });
   };
+
+  const renderOverlayComponent = (frameBackground: string, contentBackground: string) => {
+    let child: JSX.Element | null = null;
+
+    console.log(`Debugging: showCurtain = ${showCurtain}, showDescription = ${showDescription}`)
+
+    if (showDescription) {
+      child = <>
+        {appDescriptionVerbiage.map((line, index, arr) => (
+          <React.Fragment key={`appDescription${index}`}>
+            <Typography>{line}</Typography>
+            {index !== arr.length - 1 && <br />}
+          </React.Fragment>
+        ))}
+        <div style={{display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'center', alignItems: 'center', padding: '20px'}}>
+          <Button variant="contained" sx={{ m: 1 }} onClick={() => {setShowDescription(false); setShowCurtain(false)}}>Get Started</Button>
+          <Link to={"https://github.com/tearlant"} target="_blank" rel="noopener noreferrer">
+            <Button variant="contained" sx={{ m: 1 }} color="primary">
+              GitHub
+            </Button>
+          </Link>
+          <Link to={"https://tearlant.com"} target="_blank" rel="noopener noreferrer">
+            <Button variant="contained" sx={{ m: 1 }} color="primary">
+              My Portfolio
+            </Button>
+          </Link>
+        </div>
+      </>
+    } else if (modelToLoad === ModelSelection.Custom) {
+      child = <ModelLoadStepper onClose={handleSteppedThroughOverlay}/>
+    } else {
+      return <></>
+    }
+
+    return <OverlayBoxComponent isMobile={isMobile} frameBackground={frameBackground} contentBackground={contentBackground}>
+      {child}
+    </OverlayBoxComponent>
+  }
 
   return (
     <DashboardContext.Provider value={{updateImage}}>
@@ -298,21 +290,17 @@ function Dashboard({ modelToLoad }: Props) {
         </Row>
         <Row>
           <Col md="8">
-            <BarChartCard modelOutputs={modelOutputs} colors={colors} />
+            <BarChartCard modelOutputs={modelOutputs} barColors={colors} accentColor={accents.accent1} sliderColor={accents.accent2} />
           </Col>
           <Col md="4">
             <ClassListCard classLabels={modelOutputs.labels} colors={colors} ></ClassListCard>
           </Col>
         </Row>
       </Container>
-      { modelToLoad !== loadedModel && <CurtainOverlay /> }
-      { modelToLoad !== loadedModel && modelToLoad === ModelSelection.Custom && <OverlayBoxComponent onClose={handleSteppedThroughOverlay} isMobile={isMobile} frameBackground={"#999999"} contentBackground={"#cfcfcf"} /> }
+      { showCurtain && <CurtainOverlay color={colors[0]} alpha={0.5} onClick={() => setShowDescription(false)} /> }
+      { showCurtain && renderOverlayComponent(colors[3], "#cfcfcf")}
     </DashboardContext.Provider>
   );
-}
-
-function CurtainOverlay() {
-  return <div style={curtainStyle}></div>;
 }
 
 export default Dashboard;

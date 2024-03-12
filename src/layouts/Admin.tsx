@@ -15,7 +15,7 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React, { Component, createContext, useContext, useEffect, useRef, useState } from "react";
+import React, { Component, Dispatch, SetStateAction, createContext, useContext, useEffect, useRef, useState } from "react";
 import { useLocation, Route, Routes } from "react-router-dom";
 
 import AdminNavbar from "../components/Navbars/AdminNavbar";
@@ -35,6 +35,20 @@ const MobileModeContext = createContext<MobileModeContextType>({
   isMobile: false,
 });
 
+interface CurtainContextType {
+  showCurtain: boolean;
+  setShowCurtain: Dispatch<SetStateAction<boolean>>;
+  showDescription: boolean;
+  setShowDescription: Dispatch<SetStateAction<boolean>>;
+}
+
+export const CurtainContext = createContext<CurtainContextType>({
+  showCurtain: true,
+  setShowCurtain: () => {},
+  showDescription: true,
+  setShowDescription: () => {}
+});
+
 export const useMobileMode = () => useContext(MobileModeContext);
 
 function Admin() {
@@ -44,6 +58,9 @@ function Admin() {
 
   const location = useLocation();
   const mainPanel = useRef<HTMLDivElement>(null);
+
+  const [showCurtain, setShowCurtain] = useState(true);
+  const [showDescription, setShowDescription] = useState(true);
 
   useEffect(() => {
     axios.defaults.withCredentials = true;
@@ -79,29 +96,31 @@ function Admin() {
 
   return (
     <>
-      <MobileModeContext.Provider value={{ isMobile }}>
-        <div className="wrapper">
-          <Sidebar color={color} image={hasImage ? image : ""} routes={routes} />
-          <div className="main-panel" ref={mainPanel}>
-            <AdminNavbar />
-            <div className="content">
-              <Routes>
-                {routes.map((route, index) => <Route key={route.path} path={route.path} element={<route.component modelToLoad={route.loadedModel}/>}></Route>)}
-              </Routes>
+      <CurtainContext.Provider value={{ showCurtain: showCurtain, setShowCurtain: setShowCurtain, showDescription: showDescription, setShowDescription: setShowDescription }}>
+        <MobileModeContext.Provider value={{ isMobile }}>
+          <div className="wrapper">
+            <Sidebar color={color} image={hasImage ? image : ""} routes={routes} />
+            <div className="main-panel" ref={mainPanel}>
+              <AdminNavbar />
+              <div className="content">
+                <Routes>
+                  {routes.map((route, index) => <Route key={route.path} path={route.path} element={<route.component modelToLoad={route.loadedModel}/>}></Route>)}
+                </Routes>
+              </div>
+              <Footer />
             </div>
-            <Footer />
           </div>
-        </div>
-        {/*
-        <FixedPlugin
-          hasImage={hasImage}
-          setHasImage={() => setHasImage(!hasImage)}
-          color={color}
-          setColor={(color) => setColor(color)}
-          image={image}
-          setImage={(image) => setImage(image)}
-        />*/}
-      </MobileModeContext.Provider>
+          {/*
+          <FixedPlugin
+            hasImage={hasImage}
+            setHasImage={() => setHasImage(!hasImage)}
+            color={color}
+            setColor={(color) => setColor(color)}
+            image={image}
+            setImage={(image) => setImage(image)}
+          />*/}
+        </MobileModeContext.Provider>
+      </CurtainContext.Provider>
     </>
   );
 }

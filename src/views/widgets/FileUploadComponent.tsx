@@ -1,6 +1,7 @@
 import React, { useState, ChangeEvent } from 'react';
-import axios, { AxiosError } from 'axios';
-import { Button, ButtonBase, Typography, useTheme } from '@mui/material';
+import axios from 'axios';
+import { Button, Typography, useTheme } from '@mui/material';
+import urlJoin from 'url-join';
 
 const FileUploadComponent = ({callback}: {callback: () => void }) => {
 
@@ -27,8 +28,10 @@ const FileUploadComponent = ({callback}: {callback: () => void }) => {
     formData.append('TrainedModel', selectedFile);
     formData.append('SaveToLocalCacheAndUse', 'true');
 
+    const apiRoot = process.env.REACT_APP_API_ROOT || 'localhost:44346';
+
     try {
-      await axios.post('https://localhost:44346/api/Prediction/ingestanduse', formData);
+      await axios.post(urlJoin(apiRoot, 'api', 'Prediction', 'ingestanduse'), formData);
       setMessage('File uploaded successfully');
       // Additional logic if needed after successful upload
     } catch (error) {
@@ -36,8 +39,8 @@ const FileUploadComponent = ({callback}: {callback: () => void }) => {
       if (axios.isAxiosError(error)) {
         // In the demo, the above call will always return a 403 error, so it's expected to fall through to this point.
         try {
-          await axios.get('https://localhost:44346/api/FixedModels/animals');
-          setMessage('In demo mode, the upload is mocked. The animals model is loaded.');
+          await axios.get(urlJoin(apiRoot, 'api', 'FixedModels', 'flowers'));
+          setMessage('In demo mode, the upload is mocked. The flowers model is loaded.');
           callback();
         } catch (err) {
           console.error('Error occurred while performing backup operation:', err);
@@ -48,16 +51,19 @@ const FileUploadComponent = ({callback}: {callback: () => void }) => {
   };
 
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <input type="file" style={{ display: 'none' }} onChange={handleFileChange} id="file-input" />
-      <Button variant="contained" sx={{ mt: 1, mr: 1 }} onClick={() => document.getElementById('file-input')?.click()} >
-        Select File
-      </Button>
-      <Button variant="contained" color="secondary" onClick={handleUpload}
-        sx={{ mt: 1, mr: 1, backgroundColor: theme.palette.primary.light }} disabled={buttonDisabled}>
-        Upload
-      </Button>
-      <Typography>{message}</Typography>
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+        <Button variant="contained" sx={{ marginRight: '10px' }} onClick={() => document.getElementById('file-input')?.click()} >
+          Select File
+        </Button>
+        <Button variant="contained" color="secondary" onClick={handleUpload} sx={{ backgroundColor: theme.palette.primary.light }} disabled={buttonDisabled}>
+          Upload
+        </Button>
+      </div>
+      <div style={{ width: '100%', textAlign: 'center' }}>
+        <Typography>{message}</Typography>
+      </div>
     </div>
   );
 

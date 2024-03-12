@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useContext, useRef } from "react";
 import { Card } from "react-bootstrap";
+import urlJoin from "url-join";
 import { DashboardContext } from "views/Dashboard";
 
 interface Props {
@@ -19,6 +20,7 @@ function ImageCard({imgSrc, id, predictedLabel, primaryColor, secondaryColor}: P
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const apiRoot = process.env.REACT_APP_API_ROOT || 'localhost:44346';
     const file = event.target.files && event.target.files[0]; // Access files property safely
     if (file) {
       const formData = new FormData();
@@ -28,7 +30,7 @@ function ImageCard({imgSrc, id, predictedLabel, primaryColor, secondaryColor}: P
       reader.readAsDataURL(file);
       reader.onloadend = () => {
         //fetch('/api/predict')
-        axios.post('https://localhost:44346/api/Prediction/predict', formData, {
+        axios.post(urlJoin(apiRoot, 'api', 'Prediction', 'predict'), formData, {
           headers: {
             'Content-Type': 'multipart/form-data' // Set the Content-Type header to 'multipart/form-data'
           }

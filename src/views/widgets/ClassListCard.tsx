@@ -28,8 +28,7 @@ function ClassListCard({classLabels, colors}: Props) {
       <Card.Footer>
         <hr></hr>
         <div className="stats">
-          <i className="fas fa-history"></i>
-          Updated 3 minutes ago
+          Categories are updated when a new image is uploaded
         </div>
       </Card.Footer>
 
