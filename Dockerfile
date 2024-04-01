@@ -1,49 +1,50 @@
-# Use official Node.js image as base for building
+# Stage 1: Build React app
 FROM node:14-alpine AS build
-
-# Set working directory
 WORKDIR /usr/src/app
-
-# Copy package.json and package-lock.json
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install
-
-# Copy the rest of the application code
-COPY . .
-
-# Build the application
-RUN npm run build
-
-# Intermediate stage ends here
-# Start the new stage for serving the built files
-FROM node:14-alpine
-
-# Set working directory
-WORKDIR /usr/src/app
-
-# Copy only the built files from the previous stage
-COPY --from=build /usr/src/app/build ./build
-
-# Expose port 3000 for HTTPS
-EXPOSE 3000
 
 # Set environment variables
 ARG HTTPS
 ARG SSL_CRT_FILE
 ARG SSL_KEY_FILE
+ARG REACT_APP_API_ROOT
 ENV HTTPS=${HTTPS}
 ENV SSL_CRT_FILE=${SSL_CRT_FILE}
 ENV SSL_KEY_FILE=${SSL_KEY_FILE}
-ENV REACT_APP_API_ROOT=https://www.tearlant.com/mlserver/
+ENV REACT_APP_API_ROOT=${REACT_APP_API_ROOT}
+
+# Print out the value of REACT_APP_API_ROOT to verify it
+RUN echo "REACT_APP_API_ROOT: ${REACT_APP_API_ROOT}"
+
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Stage 2: Serve React app with Nginx
+FROM nginx:alpine
+
+ARG HTTPS
+ARG SSL_CRT_FILE
+ARG SSL_KEY_FILE
+ARG REACT_APP_API_ROOT
+ENV HTTPS=${HTTPS}
+ENV SSL_CRT_FILE=${SSL_CRT_FILE}
+ENV SSL_KEY_FILE=${SSL_KEY_FILE}
+ENV REACT_APP_API_ROOT=${REACT_APP_API_ROOT}
+
+# Print out the value of REACT_APP_API_ROOT to verify it
+RUN echo "REACT_APP_API_ROOT: ${REACT_APP_API_ROOT}"
 
 # Copy SSL certificate files
-COPY ${SSL_CRT_FILE} /etc/ssl/certs/server.crt
-COPY ${SSL_KEY_FILE} /etc/ssl/private/server.key
+COPY ${SSL_CRT_FILE} /etc/nginx/certs/server.crt
+COPY ${SSL_KEY_FILE} /etc/nginx/certs/server.key
 
-# Install serve to serve the built files
-RUN npm install -g serve
+# Copy built React app including static assets
+COPY --from=build /usr/src/app/build /usr/share/nginx/html
 
-# Command to serve the built files over HTTPS
-CMD ["serve", "-s", "build", "--ssl-cert", "/etc/ssl/certs/server.crt", "--ssl-key", "/etc/ssl/private/server.key"]
+# Copy Nginx configuration file with HTTPS settings
+COPY nginx.conf /etc/nginx/nginx.conf
+
+EXPOSE 443
+
+CMD ["nginx", "-g", "daemon off;"]

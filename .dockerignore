@@ -1,5 +1,10 @@
 node_modules
 build
+npm-debug.log
 .env
+.dockerignore
+**/.git
+**/.DS_Store
+**/node_modules
 localhost.pem
 localhost-key.pem
