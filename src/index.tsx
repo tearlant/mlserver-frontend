@@ -17,13 +17,15 @@ import MobileModeProvider from 'MobileModeContext';
 // If using a mock server for testing
 //if (process.env.NODE_ENV === 'development') makeServer();
 
+const baseURL = process.env.REACT_APP_BASE_URL || ''; // Access the environment variable
+
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
   <React.StrictMode>
     <MobileModeProvider>
-      <BrowserRouter>
+      <BrowserRouter basename={`/${baseURL}`}>
         <Routes>
           <Route path="/admin/*" element={<AdminLayout />} />
           <Route path="/" element={<Navigate to="/admin/animals" />} />
